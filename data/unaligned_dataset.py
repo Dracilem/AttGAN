@@ -36,13 +36,13 @@ class UnalignedDataset(BaseDataset):
         output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
         if self.opt.self_attention:
             import torchvision.transforms as transforms
-            # 额外构造transform，保证A和map的crop等过程一致
-            # 先进行crop、resize等
+            # Construct an additional transform to ensure A and map both go through the same processes like crop
+            # First, get a transform after crop and resize
             self.transform_A1 = get_transform(self.opt, grayscale=(input_nc == 1), convert=False)
-            # 再toTensor和归一化
+            # Then, convert to tensor and normalize 
             self.transform_A2 = transforms.Compose([transforms.ToTensor(),
                                             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-            # 对灰度图进行toTensor和归一化
+            # Map should convert to tensor and normalize too
             self.transform_map = transforms.Compose([transforms.ToTensor(),
                                                     transforms.Normalize((0.5,), (0.5,))])
             self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
@@ -72,10 +72,10 @@ class UnalignedDataset(BaseDataset):
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
         if self.opt.self_attention:
-            A1 = self.transform_A1(A_img)
-            A_map = getMap(A1, self.opt.self_attention_thresh)
-            A_map = self.transform_map(A_map)
-            A = self.transform_A2(A1)
+            A1 = self.transform_A1(A_img)   # get the croped and resized images
+            A_map = getMap(A1, self.opt.self_attention_thresh)  # get the map
+            A_map = self.transform_map(A_map) # get the croped and resized map
+            A = self.transform_A2(A1) # to tensor and normalize
             B = self.transform_B(B_img)
             return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path, 'A_map': A_map}
         else:

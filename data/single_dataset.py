@@ -37,7 +37,9 @@ class SingleDataset(BaseDataset):
         A_path = self.A_paths[index]
         A_img = Image.open(A_path).convert('RGB')
         A = self.transform(A_img)
-        trans_size = transforms.Resize([A.shape[1],A.shape[2]], Image.BICUBIC) # 原图测试时如果有resize，尺寸会变为4的倍数，此时map也要相应改变
+        trans_size = transforms.Resize([A.shape[1],A.shape[2]], Image.BICUBIC)
+        # If the original image is resize during the test, the size will be changed into a multiple of 4, 
+        # and the map should be changed accordingly
         A_img = trans_size(A_img)
         A_map = self.transform_map(getMap(A_img, self.opt.self_attention_thresh))
         return {'A': A, 'A_paths': A_path, 'A_map':A_map}
