@@ -138,7 +138,7 @@ class CycleGANModel(BaseModel):
             self.map_fake_A = torch.ones([self.fake_A.shape[0],1,self.fake_A.shape[2],self.fake_A.shape[3]])
             self.rec_B = self.netG_A(self.fake_A, self.map_fake_A)  # G_A(G_B(B))
         else:
-            # 虽然传入map，但是不使用
+            # map is not used
             self.fake_B = self.netG_A(self.real_A, None)  # G_A(A)
             self.rec_A = self.netG_B(self.fake_B, None)   # G_B(G_A(A))
             self.fake_A = self.netG_B(self.real_B, None)  # G_B(B)

@@ -333,10 +333,10 @@ class ResnetGenerator(nn.Module):
             padding_type (str)  -- the name of padding layer in conv layers: reflect | replicate | zero
         """
         self.self_attention = self_attention
-        self.map_cat = False  # 第一层的 map和原图采用什么连接方式
+        self.map_cat = False 
 
         if self.self_attention and self.map_cat:
-            input_nc += 1  # 增加一个map输入通道
+            input_nc += 1  # add one input channel
 
         assert(n_blocks >= 0)
         super(ResnetGenerator, self).__init__()
@@ -397,13 +397,13 @@ class ResnetGenerator(nn.Module):
         self.conv4 = nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)
         self.tanh = nn.Tanh()
 
-        self.downsample1 = nn.MaxPool2d(2)  # 无用模块，忘记去掉。去掉后需重新训练所有模型
-        self.downsample2 = nn.MaxPool2d(2)  #
+        self.downsample1 = nn.MaxPool2d(2) 
+        self.downsample2 = nn.MaxPool2d(2)  
         # self.downsample3 = nn.MaxPool2d(2)
         # self.downsample4 = nn.MaxPool2d(2)
         
         if self.self_attention:
-            # 尝试将map进行卷积，再与各中间层相乘
+            # Try to convolve the map and multiply it with the middle layers
             self.conv1_map = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=use_bias)
             self.conv2_map = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=use_bias)
             # self.conv3_map = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=use_bias)
@@ -415,9 +415,10 @@ class ResnetGenerator(nn.Module):
 
         if self.self_attention:
 
-            # map2 = self.downsample1(map)  # 怀疑：原图经过卷积，各位置代表的信息已经改变，不能直接乘map。改成map也经过卷积，试图学习位置信息
+            # map2 = self.downsample1(map)  
             # map3 = self.downsample2(map2)
-
+            # The original image has been convolved, and the information represented by each position has been changed,
+            # so it cannot be directly multiplied by map.
             # print('map',map.shape)  # 256*256
             # print('map2', map2.shape)  # 128*128
             # print('map3', map3.shape)  # 64*64
@@ -847,6 +848,5 @@ class Vgg16(nn.Module):
             return relu5_2
         elif opt.vgg_choose == "relu5_3" or "maxpool":
             return relu5_3
-
 
 

@@ -89,10 +89,9 @@ class BaseModel(ABC):
         self.print_networks(opt.verbose)
 
     def setup_demo(self, opt, model_path):
-        # 用于demoTest，载入额外路径中的模型，直接指定model_name
+        # used in demoTest，load the pre-trained models
         model_path = model_path+'_G.pth'
         self.load_networks_demo(model_path)
-        # self.print_networks(opt.verbose)
 
     def eval(self):
         """Make models eval mode during test time"""
