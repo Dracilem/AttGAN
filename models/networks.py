@@ -319,7 +319,7 @@ class ResnetGenerator(nn.Module):
 
     We adapt Torch code and idea from Justin Johnson's neural style transfer project(https://github.com/jcjohnson/fast-neural-style)
     """
-
+    # instantiate all the modules
     def __init__(self, input_nc, output_nc, self_attention, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
         """Construct a Resnet-based generator
 
@@ -399,33 +399,20 @@ class ResnetGenerator(nn.Module):
 
         self.downsample1 = nn.MaxPool2d(2) 
         self.downsample2 = nn.MaxPool2d(2)  
-        # self.downsample3 = nn.MaxPool2d(2)
-        # self.downsample4 = nn.MaxPool2d(2)
         
         if self.self_attention:
             # Try to convolve the map and multiply it with the middle layers
             self.conv1_map = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=use_bias)
             self.conv2_map = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=use_bias)
-            # self.conv3_map = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=use_bias)
-            # self.conv4_map = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=use_bias)
 
 
+    # Forward function that defines the network structure
     def forward(self, input, map):
         x = input
 
         if self.self_attention:
 
-            # map2 = self.downsample1(map)  
-            # map3 = self.downsample2(map2)
-            # The original image has been convolved, and the information represented by each position has been changed,
-            # so it cannot be directly multiplied by map.
-            # print('map',map.shape)  # 256*256
-            # print('map2', map2.shape)  # 128*128
-            # print('map3', map3.shape)  # 64*64
-            # print('map4', map4.shape)  # 32*32
-            # print('map5', map5.shape)  # 16*16
-
-            # 3*256*256
+            # 3*256*256 if the two tensors are not concatenated, concatenate them row-wise
             if self.map_cat:
                 x = self.relu(self.norm1(self.conv1(self.ref1(torch.cat([x, map],1)))))
             else:
@@ -437,9 +424,7 @@ class ResnetGenerator(nn.Module):
             # 128*128*128
             map2 = self.conv2_map(map1)
             x = self.relu(self.norm3(self.conv3(x*map2)))
-            # 256*64*64
-            # map3 = self.conv3_map(map2)
-            # x = self.resnetblock1(x*map3)
+
             x = self.resnetblock1(x)
             x = self.resnetblock2(x)
             x = self.resnetblock3(x)
@@ -448,10 +433,9 @@ class ResnetGenerator(nn.Module):
             x = self.resnetblock6(x)
             x = self.resnetblock7(x)
             x = self.resnetblock8(x)
+
             x = self.resnetblock9(x)
             # 64*64
-            # map4 = self.conv4_map(map3)
-            # x = self.relu(self.norm4(self.convtran1(x*map4)))
             x = self.relu(self.norm4(self.convtran1(x)))
             # 128*128
             x = self.relu(self.norm5(self.convtran2(x)))
@@ -760,14 +744,6 @@ def load_vgg16(model_dir, gpu_ids):
     """ Use the model from https://github.com/abhiskk/fast-neural-style/blob/master/neural_style/utils.py """
     if not os.path.exists(model_dir):
         os.mkdir(model_dir)
-    # if not os.path.exists(os.path.join(model_dir, 'vgg16.weight')):
-    #     if not os.path.exists(os.path.join(model_dir, 'vgg16.t7')):
-    #         os.system('wget https://www.dropbox.com/s/76l3rt4kyi3s8x7/vgg16.t7?dl=1 -O ' + os.path.join(model_dir, 'vgg16.t7'))
-    #     vgglua = load_lua(os.path.join(model_dir, 'vgg16.t7'))
-    #     vgg = Vgg16()
-    #     for (src, dst) in zip(vgglua.parameters()[0], vgg.parameters()):
-    #         dst.data[:] = src
-    #     torch.save(vgg.state_dict(), os.path.join(model_dir, 'vgg16.weight'))
     vgg = Vgg16()
     # vgg.cuda()
     vgg.cuda(device=gpu_ids[0])
@@ -775,7 +751,7 @@ def load_vgg16(model_dir, gpu_ids):
     vgg = torch.nn.DataParallel(vgg, gpu_ids)
     return vgg
 
-
+# The networks of Vgg16 model
 class Vgg16(nn.Module):
     def __init__(self):
         super(Vgg16, self).__init__()

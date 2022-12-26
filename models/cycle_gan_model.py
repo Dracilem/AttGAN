@@ -67,12 +67,13 @@ class CycleGANModel(BaseModel):
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             visual_names_A.append('idt_B')
             visual_names_B.append('idt_A')
+
         # Add VGG loss
         if self.isTrain and self.opt.vgg > 0:
-            self.vgg_loss = networks.PerceptualLoss(opt)
-            self.vgg_loss.cuda()
-            self.vgg = networks.load_vgg16("./pretrained_model", self.gpu_ids)
-            self.vgg.eval()
+            self.vgg_loss = networks.PerceptualLoss(opt) # get the vgg loss
+            self.vgg_loss.cuda() # move the loss to GPU
+            self.vgg = networks.load_vgg16("./pretrained_model", self.gpu_ids) # load the pretrained model
+            self.vgg.eval() # evaluate model
             for param in self.vgg.parameters():
                 param.requires_grad = False
 
